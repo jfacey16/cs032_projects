@@ -1,0 +1,5 @@
+INPUT
+stars a
+OUTPUT
+ERROR: a (No such file or directory)
+END

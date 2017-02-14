@@ -1,0 +1,5 @@
+INPUT
+radius
+OUTPUT
+ERROR: Incorrect input format. Format should be radius <radius value> <x coordinate> <y coordinate> <z coordinate> or format should be radius <radius value to find> <name of star>
+END

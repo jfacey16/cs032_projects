@@ -1,0 +1,5 @@
+INPUT
+stars
+OUTPUT
+ERROR: Incorrect input format. Format should be stars <filepath>
+END
