@@ -23,6 +23,7 @@ import spark.template.freemarker.FreeMarkerEngine;
 
 import com.google.common.collect.ImmutableMap;
 
+import edu.brown.cs.jfacey.datastructs.Kdtree;
 import freemarker.template.Configuration;
 
 /**
@@ -33,7 +34,7 @@ import freemarker.template.Configuration;
 public final class Main {
 
   private static final int DEFAULT_PORT = 4567;
-  private Kdtree<Star> _kd;
+  private Kdtree<Star> kdInstance;
   /**
    * The initial method called when execution begins.
    *
@@ -41,12 +42,12 @@ public final class Main {
    *          An array of command line arguments
    */
   public static void main(String[] args) {
-    try {
-			new Main(args).run();
-		} catch (IOException e) {
-			
-			e.printStackTrace();
-		}
+  	try {
+    	new Main(args).run();
+  	} catch (IOException e) {
+
+  		System.out.println("ERROR: " + e.getMessage());
+  	}
   }
 
   private String[] args;
@@ -66,135 +67,279 @@ public final class Main {
     if (options.has("gui")) {
       runSparkServer((int) options.valueOf("port"));
     }
-    
+
     //beginning of repl
-    try (BufferedReader br = new BufferedReader(new InputStreamReader(System.in, "UTF8"))) {
+    try (BufferedReader br = new BufferedReader(
+    		new InputStreamReader(System.in, "UTF8"))) {
 			String input;
 			// REPL infinite loop reading inputs
 			while ((input = br.readLine()) != null) {
 				//parse input
 	      String[] inputs = input.split("\\s+");
 	      //stars command check
-	      if (Objects.equals(inputs[0],"stars")) {
-	      
+	      if (Objects.equals(inputs[0], "stars")) {
+	      	//make sure there are enough inputs
+	      	if (inputs.length != 2) {
+	      		System.out.println("ERROR: Incorrect input format. "
+	      				+ "Format should be stars <filepath>");
+	      		continue;
+	      	}
+	      	//instantiate csvparser which parses the list of stars
+	      	//to add to the tree
 	      	CSVParser csvParser = new CSVParser(inputs[1]);
-		    	_kd = new Kdtree<Star>(csvParser.parseFile());
-	      
+
+	      	List<Star> starList;
+	      	//prints error message if csvfile can't be parsed
+	      	try {
+
+	      		starList = csvParser.parseFile();
+
+	      	} catch (RuntimeException e) {
+
+	      		System.out.println("ERROR: " + e.getMessage());
+	      		continue;
+	      	}
+	      	//instantiates kdtree with given star list
+		    	kdInstance = new Kdtree<Star>(starList);
+		    	System.out.println("Read " + starList.size()
+		    			+ " stars from " + inputs[1]);
 	    	//neighbors position command check
-	      } else if (Objects.equals(inputs[0],"neighbors") && (inputs[2].charAt(0) != '"') 
-	  				&& (inputs[2].charAt(inputs[2].length() - 1) != '"')) {
-	      	
-	      	if (_kd == null) {
-	      		
-	      		System.out.println("ERROR: Kdtree not yet loaded");
-	      		
-	      	} else {
-	      		
-	      		List<Star> bestNeighbors = new ArrayList<>();
-	      		int numNeighbors = Integer.parseInt(inputs[1]);
-	      		
-	      		double posX = Double.parseDouble(inputs[2]);
-	      		double posY = Double.parseDouble(inputs[3]);
-	      		double posZ = Double.parseDouble(inputs[4]);
-	      		Star searchStar = new Star(0,"",posX,posY,posZ);
-	      		
-	      		_kd.neighbors(bestNeighbors, numNeighbors, searchStar,null);
-	      		
-	      		for (int i = 0; i < bestNeighbors.size(); i++) {
-	      			
-	      			System.out.println(bestNeighbors.get(i).getID());
-	      			System.out.println(bestNeighbors.get(i).getX());
-	      			System.out.println(bestNeighbors.get(i).getY());
-	      			System.out.println(bestNeighbors.get(i).getZ());
-	      			
+	      } else if (Objects.equals(inputs[0], "neighbors")) {
+	      	//check enough inputs for neighbors search (no name)
+	      	if (inputs.length == 5) {
+	      		//error if kdtree has not yet been loaded
+	  	      if (kdInstance == null) {
+
+	  	      	System.out.println("ERROR: Kdtree not yet loaded");
+	  	      	continue;
+	  	      }
+	  	      //ready parameters for neighbors search
+	  	      List<Star> bestNeighbors = new ArrayList<>();
+
+	  	      int numNeighbors;
+	  	      double posX;
+	  	      double posY;
+	  	      double posZ;
+	  	      //makes sure input values are numbers
+	  	      try {
+
+	  	      	numNeighbors = Integer.parseInt(inputs[1]);
+
+	  	      	posX = Double.parseDouble(inputs[2]);
+	  	      	posY = Double.parseDouble(inputs[3]);
+	  	      	posZ = Double.parseDouble(inputs[4]);
+
+	  	      } catch (NumberFormatException e) {
+
+	  	      	System.out.println("ERROR: Number of neighbors "
+	  	      			+ "must be a "
+	  	      			+ "valid int and X positon, "
+	  	      			+ "Y position, and Z position "
+	  	      			+ "must all be valid doubles");
+	  	      	continue;
+	  	      }
+	  	      //instantiate star
+	  	      Star searchStar = new Star(0, "", posX, posY, posZ);
+	  	      //call the search
+	  	      kdInstance.neighbors(bestNeighbors, numNeighbors,
+	  	      		searchStar, null);
+	  	      //prints out the ids of the found points
+	  	      for (int i = 0; i < bestNeighbors.size(); i++) {
+
+	  	      	System.out.println(bestNeighbors.get(i).getID());
+	  	      }
+	      	//check enough inputs for neighbors search (name)
+	      	} else if (inputs.length == 3) {
+	      		//check name in quotes
+	      		if ((inputs[2].charAt(0) == '"')
+	      				&& (inputs[2].charAt(
+	      				inputs[2].length() - 1) == '"')) {
+
+	      			//error if kdtree has not yet been loaded
+	  	      	if (kdInstance == null) {
+
+	  	      		System.out.println("ERROR: Kdtree not "
+	  	      				+ "yet loaded");
+	  	      		continue;
+	  	      	}
+	  	      	//ready parameters for neighbors search
+	  	      	List<Star> bestNeighbors = new ArrayList<>();
+	  	      	int numNeighbors;
+	  	      	//makes sure input value is a number
+	  	      	try {
+
+	  	      		numNeighbors = Integer.parseInt(inputs[1]);
+
+	  	      	} catch (NumberFormatException e) {
+
+	  	      		System.out.println("ERROR: Number of neighbors"
+	  	      				+ " must be a valid integer");
+	  	      		continue;
+	  	      	}
+
+	  	      	String name = inputs[2].substring(1,
+	  	      			inputs[2].length() - 1);
+	  	      	//call the search
+	  	      	kdInstance.neighbors(bestNeighbors, numNeighbors,
+	  	      			null, name);
+	  	      	//prints out the ids of the found points
+	  	      	for (int i = 0; i < bestNeighbors.size(); i++) {
+
+	  	      		System.out.println(bestNeighbors.
+	  	      				get(i).getID());
+	  	      	}
+	      		} else {
+
+	      			System.out.println("ERROR: Incorrect input "
+	      					+ "format. "
+	      					+ "Name of star must be "
+	      					+ "given in quotes");
+	      			continue;
 	      		}
-	      	}
-	    		
-	    	//neighbors name command check
-	      } else if (Objects.equals(inputs[0],"neighbors") && (inputs[2].charAt(0) == '"') 
-	  				&& (inputs[2].charAt(inputs[2].length() - 1) == '"')) {
-	      	
-	      	if (_kd == null) {
-	      		
-	      		System.out.println("ERROR: Kdtree not yet loaded");
-	      		
 	      	} else {
-	      		
-	      		List<Star> bestNeighbors = new ArrayList<>();
-	      		int numNeighbors = Integer.parseInt(inputs[1]);
-	      		
-	      		String name = inputs[2].substring(1,inputs[2].length()-1);
-	      		
-	      		_kd.neighbors(bestNeighbors, numNeighbors, null,name);
-	      		
-	      		for (int i = 0; i < bestNeighbors.size(); i++) {
-	      			
-	      			System.out.println(bestNeighbors.get(i).getID());
-	      		}
+
+	      		System.out.println("ERROR: Incorrect input "
+	      				+ "format. Format should be "
+	      				+ "neighbors <number of neighbors "
+	      				+ "to find> <x coordinate> "
+	      				+ "<y coordinate> <z coordinate> "
+	      				+ "or format should be neighbors "
+	      				+ "<number of neighbors to find> "
+	      				+ "<name of star>");
+	      		continue;
 	      	}
-	    		
-	    	//radius position command check	
-	      } else if (Objects.equals(inputs[0],"radius") && (inputs[2].charAt(0) != '"') 
-	  				&& (inputs[2].charAt(inputs[2].length() - 1) != '"')) {
-	      	
-	      	if (_kd == null) {
-	      		
-	      		System.out.println("ERROR: Kdtree not yet loaded");
-	      		
+	    	//radius position command check
+	      } else if (Objects.equals(inputs[0], "radius")) {
+	      	if (inputs.length == 5) {
+	      	//error if kdtree has not yet been loaded
+		      	if (kdInstance == null) {
+
+		      		System.out.println("ERROR: Kdtree "
+		      				+ "not yet loaded");
+		      		continue;
+		      	}
+		      	//make sure there are enough inputs
+		      	if (inputs.length != 5) {
+		      		System.out.println("ERROR: Incorrect "
+		      				+ "input format. Format should "
+		      				+ "be radius <radius value> "
+		      				+ "<x coordinate> "
+		      				+ "<y coordinate> "
+		      				+ "<z coordinate>");
+		      		continue;
+		      	}
+		      	//ready parameters for radius search
+		      	List<Star> bestRadius = new ArrayList<>();
+		      	double radius;
+		      	double posX;
+		      	double posY;
+		      	double posZ;
+		      	//makes sure input values are numbers
+		      	try {
+		      		radius = Double.parseDouble(inputs[1]);
+
+		      		posX = Double.parseDouble(inputs[2]);
+		      		posY = Double.parseDouble(inputs[3]);
+		     			posZ = Double.parseDouble(inputs[4]);
+
+		     		} catch (NumberFormatException e) {
+
+		     			System.out.println("ERROR: Radius, "
+		     					+ "X positon"
+		     					+ ", Y position, "
+		     					+ "and Z position "
+		     					+ "must all "
+		     					+ "be valid doubles");
+		     			continue;
+		     		}
+		      	//instantiate star
+		     		Star searchStar = new Star(0, "", posX,
+		     				posY, posZ);
+		      	//call the search
+		      	kdInstance.radius(bestRadius, radius,
+		      			searchStar, null);
+		      	//prints out the ids of the found points
+		      	for (int i = 0; i < bestRadius.size();
+		      			i++) {
+
+		      		System.out.println(bestRadius.get(i)
+		      				.getID());
+		      	}
+	      	} else if (inputs.length == 3) {
+	      		if ((inputs[2].charAt(0) == '"')
+	      				&& (inputs[2].charAt(inputs[2].
+	      				length() - 1) == '"')) {
+	      			//error if kdtree has not yet
+	      			//been loaded
+	  	      	if (kdInstance == null) {
+
+	  	      		System.out.println("ERROR: Kdtree "
+	  	      				+ "not yet loaded");
+	  	      		continue;
+	  	      	}
+	  	      	//make sure there are enough inputs
+	  	      	if (inputs.length != 3) {
+	  	      		System.out.println("ERROR: Incorrect "
+	  	      				+ "input format. "
+	  	      				+ "Format should be radius "
+	  	      				+ "<radius value> "
+	  	      				+ "<star name>");
+	  	      		continue;
+	  	      	}
+	  	      	//ready parameters for radius search
+	  	      	List<Star> bestRadius = new ArrayList<>();
+
+	  	      	double radius;
+	  	      	//makes sure input value is a number
+	  	      	try {
+
+	  	      		radius = Double.parseDouble(inputs[1]);
+
+	  	      	} catch (NumberFormatException e) {
+
+	  	      		System.out.println("ERROR: Radius must "
+	  	      				+ "be a valid double");
+	  	      		continue;
+	  	      	}
+
+	  	      	String name = inputs[2].substring(1,
+	  	      			inputs[2].length() - 1);
+	  	      	//call the search
+	  	      	kdInstance.radius(bestRadius, radius, null, name);
+	  	      	//prints out the ids of the found points
+	  	      	for (int i = 0; i < bestRadius.size(); i++) {
+
+	  	      		System.out.println(bestRadius.get(i).getID());
+	  	      	}
+	      		} else {
+
+	      			System.out.println("ERROR: Incorrect input "
+	      					+ "format. "
+	      					+ "Name of star must be "
+	      					+ "given in quotes");
+	      			continue;
+	      		}
 	      	} else {
-	      		
-	      		List<Star> bestRadius = new ArrayList<>();
-	      		double radius = Double.parseDouble(inputs[1]);
-	      		
-	      		double posX = Double.parseDouble(inputs[2]);
-	      		double posY = Double.parseDouble(inputs[3]);
-	      		double posZ = Double.parseDouble(inputs[4]);
-	      		Star searchStar = new Star(0,"",posX,posY,posZ);
-	      		
-	      		_kd.radius(bestRadius, radius, searchStar, null);
-	      		
-	      		for (int i = 0; i < bestRadius.size(); i++) {
-	      			
-	      			System.out.println(bestRadius.get(i).getID());
-	      			System.out.println(bestRadius.get(i).getX());
-	      			System.out.println(bestRadius.get(i).getY());
-	      			System.out.println(bestRadius.get(i).getZ());
-	      		}
+
+	      		System.out.println("ERROR: Incorrect input format. "
+	      				+ "Format should be radius "
+	      				+ "<radius value> "
+	      				+ "<x coordinate> <y coordinate> "
+	      				+ "<z coordinate> or "
+	      				+ "format should be radius "
+	      				+ "<radius value "
+	      				+ "to find> <name of star>");
+	      		continue;
 	      	}
-	      	
-	    	//radius name command check	
-	      } else if (Objects.equals(inputs[0],"radius") && (inputs[2].charAt(0) == '"') 
-	  				&& (inputs[2].charAt(inputs[2].length() - 1) == '"')) {
-	      	
-	      	if (_kd == null) {
-	      		
-	      		System.out.println("ERROR: Kdtree not yet loaded");
-	      		
-	      	} else {
-	      		List<Star> bestRadius = new ArrayList<>();
-	      		double radius = Double.parseDouble(inputs[1]);
-	      		
-	      		String name = inputs[2].substring(1,inputs[2].length()-1);
-	      		
-	      		_kd.radius(bestRadius, radius, null, name);
-	      		
-	      		for (int i = 0; i < bestRadius.size(); i++) {
-	      			
-	      			System.out.println(bestRadius.get(i).getID());
-	      		}
-	      	}
-	      
-	      } else {
-	      	
-	      	
-	      	
+	      }  else {
+	      	//if no command can be read
+	      	System.out.println("ERROR: Invalid command given");
 	      }
 			}
 		} catch (IOException e) {
-			//To do: fill in error message
+
 			System.out.println("ERROR: " + e.getMessage());
 		}
-    
   }
 
   private static FreeMarkerEngine createEngine() {

@@ -1,0 +1,5 @@
+INPUT
+neighbors
+OUTPUT
+ERROR: Incorrect input format. Format should be neighbors <number of neighbors to find> <x coordinate> <y coordinate> <z coordinate> or format should be neighbors <number of neighbors to find> <name of star>
+END

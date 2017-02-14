@@ -1,0 +1,7 @@
+INPUT
+stars data/stars/stardata.csv
+stars data/stars/ten-star.csv
+OUTPUT
+Read 119617 stars from data/stars/stardata.csv
+Read 10 stars from data/stars/ten-star.csv
+END
