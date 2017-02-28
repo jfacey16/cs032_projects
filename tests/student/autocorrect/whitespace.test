@@ -1,0 +1,9 @@
+INPUT
+corpus data/autocorrect/sherlock.txt
+whitespace on
+ac the airwas
+OUTPUT
+corpus data/autocorrect/sherlock.txt added
+ac the airwas
+the air was
+END

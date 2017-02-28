@@ -1,5 +1,0 @@
-INPUT
-stars 1 2
-OUTPUT
-ERROR: Incorrect input format. Format should be stars <filepath>
-END

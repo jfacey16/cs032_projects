@@ -1,0 +1,5 @@
+INPUT
+corpus data/autocorrect/nofile.txt
+OUTPUT
+ERROR: invalid file path
+END
