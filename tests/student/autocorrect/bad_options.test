@@ -1,0 +1,7 @@
+INPUT
+prefix on a
+whitespace a
+OUTPUT
+ERROR: Incorrect input format. Should be prefix <on|off> or prefix
+ERROR: Options for whitespace are <on|off>
+END

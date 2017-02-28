@@ -1,0 +1,7 @@
+INPUT
+prefix on    
+corpus data/autocorrect/sherlock.txt    
+ac the t     
+OUTPUT
+corpus data/autocorrect/sherlock.txt added
+END

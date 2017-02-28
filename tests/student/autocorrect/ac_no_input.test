@@ -1,0 +1,7 @@
+INPUT
+corpus data/autocorrect/sherlock.txt
+ac
+OUTPUT
+corpus data/autocorrect/sherlock.txt added
+ERROR: ac must take argument <input text>
+END

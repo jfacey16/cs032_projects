@@ -1,0 +1,21 @@
+INPUT
+prefix on
+prefix
+whitespace on
+whitespace
+led 3
+led
+smart on
+smart
+led 2
+prefix off
+led
+prefix
+OUTPUT
+prefix on
+whitespace on
+led 3
+smart on
+led 2
+prefix off
+END

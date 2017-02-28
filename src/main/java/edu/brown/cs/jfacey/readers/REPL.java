@@ -3,6 +3,7 @@ package edu.brown.cs.jfacey.readers;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.util.List;
 
 /**
  * This class defines an implementation of read-evaluate-print loop that can
@@ -13,14 +14,15 @@ import java.io.InputStreamReader;
  */
 public class REPL {
 
-  private Command[] iCommands;
+  private List<Command> iCommands;
 
   /**
    * The constructor for this class that sets the initial command values.
    *
    * @param commands
+   *          the commands list for this repl
    */
-  public REPL(Command[] commands) {
+  public REPL(List<Command> commands) {
 
     iCommands = commands;
   }
@@ -38,13 +40,14 @@ public class REPL {
       // REPL infinite loop reading inputs
       while ((input = br.readLine()) != null) {
         // parse input
-        String[] inputs = input.split("\\s+");
+        String[] inputs = input.split(
+            "[ ]+(?=([^\"]*\"[^\"]*\")*[^\"]*$)", -1);
 
         int read = 0;
 
-        for (int i = 0; i < iCommands.length; i++) {
+        for (int i = 0; i < iCommands.size(); i++) {
 
-          if (iCommands[i].execute(inputs)) {
+          if (iCommands.get(i).execute(inputs)) {
             read = 1;
             break;
           }

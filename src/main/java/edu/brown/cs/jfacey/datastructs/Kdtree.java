@@ -89,15 +89,17 @@ public class Kdtree<T extends Kdpoint> {
   /**
    * This is a getter method for the root node.
    *
-   * @return
+   * @return the root value for the kdtree
    */
   public T getRoot() {
     return iRoot;
   }
 
   /**
+   * This is a setter method for the root node.
    *
    * @param root
+   *          the new root value for the kdtree
    */
   public void setRoot(T root) {
     iRoot = root;
@@ -121,17 +123,23 @@ public class Kdtree<T extends Kdpoint> {
    * @param name
    *          the name of the point to search off, may be null
    */
-  public void neighbors(List<T> bestNeighbors, int numNeighbors, T searchPoint,
-      String name) {
+  public void neighbors(List<T> bestNeighbors, int numNeighbors,
+      T searchPoint, String name) {
     // check to make sure number of neighbors to search on
     // is greater than zero
-    if (numNeighbors <= 0) {
+    if (numNeighbors < 0) {
       System.out.println("ERROR: Number of neighbors " + "to find must "
           + "be greater than zero");
       return;
+    } else if (numNeighbors == 0) {
+      return;
     }
+    // set initial value for if name search or not
+    boolean isName = false;
     // if the name is given, find the point to search on
     if (name != null) {
+      // set boolean true for name search
+      isName = true;
 
       searchPoint = iPointsTable.get(name);
       // if the point can not be found, an invalid
@@ -144,7 +152,8 @@ public class Kdtree<T extends Kdpoint> {
       }
     }
     // call the helper method to run the algorithm
-    this.neighborsHelper(bestNeighbors, numNeighbors, iRoot, searchPoint, 1);
+    this.neighborsHelper(bestNeighbors, numNeighbors, iRoot, searchPoint,
+        1, isName);
   }
 
   /**
@@ -176,11 +185,13 @@ public class Kdtree<T extends Kdpoint> {
    *          the point we are searching based on
    * @param depth
    *          the current depth of the tree
+   * @param isName
+   *          name search or not
    */
   @SuppressWarnings("unchecked")
-  public void neighborsHelper(List<T> bestNeighbors, int numNeighbors, T cur,
-      T searchPoint, int depth) {
-
+  public void neighborsHelper(List<T> bestNeighbors, int numNeighbors,
+      T cur, T searchPoint, int depth, boolean isName) {
+    // instantiate comparators
     PointCompare pointComparator = new PointCompare(depth);
     DistanceCompare dComparator = new DistanceCompare(searchPoint);
 
@@ -191,167 +202,149 @@ public class Kdtree<T extends Kdpoint> {
       if (pointComparator.compare(searchPoint, cur) <= 0) {
         // follow left path
         this.neighborsHelper(bestNeighbors, numNeighbors,
-            (T) cur.getLeftChild(), searchPoint, depth + 1);
+            (T) cur.getLeftChild(), searchPoint, depth + 1, isName);
 
-        // add current node to best list if applicable
-        if (bestNeighbors.size() < numNeighbors) {
-          // if list not yet at size, add and sort
-          bestNeighbors.add(cur);
-          bestNeighbors.sort(dComparator);
-
-        } else {
-
-          if (dComparator.compare(bestNeighbors.get(numNeighbors - 1), cur) > 0) {
-            // if last node in sorted list
-            // not as
-            // close as current node,
-            // replace it and sort
-            bestNeighbors.remove(numNeighbors - 1);
-            bestNeighbors.add(cur);
-            bestNeighbors.sort(dComparator);
-          }
-        }
+        // call check and add on current node
+        this.neighborsCheckAndAdd(bestNeighbors, numNeighbors, cur,
+            searchPoint, depth, isName, dComparator);
         // calculate split coordinate distance between
         // current node and search node
-        double dist;
-
-        int dimension = (depth % 3);
-
-        if (dimension == 1) {
-
-          dist = Math.pow(cur.getX() - searchPoint.getX(), 2);
-
-        } else if (dimension == 2) {
-
-          dist = Math.pow(cur.getY() - searchPoint.getY(), 2);
-
-        } else {
-
-          dist = Math.pow(cur.getZ() - searchPoint.getZ(), 2);
-
-        }
-        // if overall distance between search point
-        // and the worst of my current nearest
-        // neighbors is greater than the distance
-        // between the search point and current point
-        // along the current axis or if I don't
-        // currently have a full nearest neighbors
-        // list, then I search along other branches
+        double dist = this.calcSplit(depth, cur, searchPoint);
+        // if there are points on the other side of the hyper plane or if I
+        // don't currently have a full nearest neighbors list, then I search
+        // along other branches
         if (bestNeighbors.size() < numNeighbors) {
 
           this.neighborsHelper(bestNeighbors, numNeighbors,
-              (T) cur.getRightChild(), searchPoint, depth + 1);
+              (T) cur.getRightChild(), searchPoint, depth + 1, isName);
 
         } else {
 
-          if (dComparator.squareDistance(bestNeighbors.get(numNeighbors - 1),
-              searchPoint) > dist) {
+          if (dComparator.squareDistance(
+              bestNeighbors.get(numNeighbors - 1), searchPoint) > dist) {
 
             this.neighborsHelper(bestNeighbors, numNeighbors,
-                (T) cur.getRightChild(), searchPoint, depth + 1);
+                (T) cur.getRightChild(), searchPoint, depth + 1, isName);
           }
         }
       } else {
         // follow right path
         this.neighborsHelper(bestNeighbors, numNeighbors,
-            (T) cur.getRightChild(), searchPoint, depth + 1);
+            (T) cur.getRightChild(), searchPoint, depth + 1, isName);
 
-        // add current node to best list if applicable
-        if (bestNeighbors.size() < numNeighbors) {
-          // if list not yet at size, add and sort
-          bestNeighbors.add(cur);
-          bestNeighbors.sort(dComparator);
-
-        } else {
-
-          if (dComparator.compare(bestNeighbors.get(numNeighbors - 1), cur) > 0) {
-            // if last node in sorted list
-            // not as
-            // close as current node,
-            // replace it and sort
-            bestNeighbors.remove(numNeighbors - 1);
-            bestNeighbors.add(cur);
-            bestNeighbors.sort(dComparator);
-          }
-        }
+        this.neighborsCheckAndAdd(bestNeighbors, numNeighbors, cur,
+            searchPoint, depth, isName, dComparator);
         // calculate split coordinate distance between
         // current node and search node
-        double dist;
-
-        int dimension = (depth % 3);
-
-        if (dimension == 1) {
-
-          dist = Math.pow(cur.getX() - searchPoint.getX(), 2);
-
-        } else if (dimension == 2) {
-
-          dist = Math.pow(cur.getY() - searchPoint.getY(), 2);
-
-        } else {
-
-          dist = Math.pow(cur.getZ() - searchPoint.getZ(), 2);
-        }
-        // if overall distance between search point and
-        // the worst of my current nearest
-        // neighbors is greater
-        // than the distance between the search point and
-        // current point along the current axis
-        // or if I don't
-        // currently have a full nearest neighbors list,
-        // then I search along other branches
+        double dist = this.calcSplit(depth, cur, searchPoint);
+        // if there are points on the other side of the hyper plane or if I
+        // don't currently have a full nearest neighbors list, then I search
+        // along other branches
         if (bestNeighbors.size() < numNeighbors) {
 
           this.neighborsHelper(bestNeighbors, numNeighbors,
-              (T) cur.getLeftChild(), searchPoint, depth + 1);
+              (T) cur.getLeftChild(), searchPoint, depth + 1, isName);
 
         } else {
 
-          if (dComparator.squareDistance(bestNeighbors.get(numNeighbors - 1),
-              searchPoint) > dist) {
+          if (dComparator.squareDistance(
+              bestNeighbors.get(numNeighbors - 1), searchPoint) > dist) {
 
             this.neighborsHelper(bestNeighbors, numNeighbors,
-                (T) cur.getLeftChild(), searchPoint, depth + 1);
+                (T) cur.getLeftChild(), searchPoint, depth + 1, isName);
           }
         }
       }
       // only left child just go left
     } else if (cur.getLeftChild() != null && cur.getRightChild() == null) {
-
-      this.neighborsHelper(bestNeighbors, numNeighbors, (T) cur.getLeftChild(),
-          searchPoint, depth + 1);
-
-      // add current node to best list if applicable
-      if (bestNeighbors.size() < numNeighbors) {
-        // if list not yet at size, add and sort
-        bestNeighbors.add(cur);
-        bestNeighbors.sort(dComparator);
-
-      } else if (dComparator.compare(bestNeighbors.get(numNeighbors - 1), cur) > 0) {
-        // if last node in sorted list not as
-        // close as current node,
-        // replace it and sort
-        bestNeighbors.remove(numNeighbors - 1);
-        bestNeighbors.add(cur);
-        bestNeighbors.sort(dComparator);
-      }
+      // call search recursively
+      this.neighborsHelper(bestNeighbors, numNeighbors,
+          (T) cur.getLeftChild(), searchPoint, depth + 1, isName);
+      // call check and add on current node
+      this.neighborsCheckAndAdd(bestNeighbors, numNeighbors, cur,
+          searchPoint, depth, isName, dComparator);
       // leaf node
     } else if (cur.getLeftChild() == null && cur.getRightChild() == null) {
+      // call check and add on current node
+      this.neighborsCheckAndAdd(bestNeighbors, numNeighbors, cur,
+          searchPoint, depth, isName, dComparator);
+    }
+  }
 
-      // add current node to best list if applicable
-      if (bestNeighbors.size() < numNeighbors) {
-        // if list not yet at size, add and sort
-        bestNeighbors.add(cur);
-        bestNeighbors.sort(dComparator);
+  /**
+   * This helper method checks if a node should be added to the list, and does
+   * so if it should be. This list is also sorted for the next use.
+   *
+   * @param bestNeighbors
+   *          the current list of nearest neighbors
+   * @param numNeighbors
+   *          the number of nearest neighbors to find
+   * @param cur
+   *          the current node
+   * @param searchPoint
+   *          the point we are searching based on
+   * @param depth
+   *          the current depth of the tree
+   * @param isName
+   *          name search or not
+   * @param dComparator
+   *          the distance comparator
+   */
+  public void neighborsCheckAndAdd(List<T> bestNeighbors,
+      int numNeighbors, T cur, T searchPoint, int depth, boolean isName,
+      DistanceCompare dComparator) {
+    // if current point is the search point and this is a name search, don't add
+    // the point
+    if (cur.getX() == searchPoint.getX()
+        && cur.getY() == searchPoint.getY()
+        && cur.getZ() == searchPoint.getZ() && isName) {
+      return;
+    }
+    // add current node to best list if applicable
+    if (bestNeighbors.size() < numNeighbors) {
+      // if list not yet at size, add and sort
+      bestNeighbors.add(cur);
+      bestNeighbors.sort(dComparator);
 
-      } else if (dComparator.compare(bestNeighbors.get(numNeighbors - 1), cur) > 0) {
-        // if last node in sorted list not as
-        // close as current node,
-        // replace it and sort
-        bestNeighbors.remove(numNeighbors - 1);
-        bestNeighbors.add(cur);
-        bestNeighbors.sort(dComparator);
-      }
+    } else if (dComparator.compare(bestNeighbors.get(numNeighbors - 1),
+        cur) > 0) {
+      // if last node in sorted list not as
+      // close as current node,
+      // replace it and sort
+      bestNeighbors.remove(numNeighbors - 1);
+      bestNeighbors.add(cur);
+      bestNeighbors.sort(dComparator);
+    }
+  }
+
+  /**
+   * This method just calculates the square distance between the current node's
+   * and the search nodes's split coordinate.
+   *
+   * @param depth
+   *          current depth
+   * @param cur
+   *          current node
+   * @param searchPoint
+   *          search node
+   * @return double representing square distance between points on split
+   *         coordinate
+   */
+  public double calcSplit(int depth, T cur, T searchPoint) {
+
+    int dimension = (depth % 3);
+
+    if (dimension == 1) {
+
+      return Math.pow(cur.getX() - searchPoint.getX(), 2);
+
+    } else if (dimension == 2) {
+
+      return Math.pow(cur.getY() - searchPoint.getY(), 2);
+
+    } else {
+
+      return Math.pow(cur.getZ() - searchPoint.getZ(), 2);
     }
   }
 
@@ -373,29 +366,36 @@ public class Kdtree<T extends Kdpoint> {
    * @param name
    *          the name of the point to search off, may be null
    */
-  public void radius(List<T> bestRadius, double radiusValue, T searchPoint,
-      String name) {
+  public void radius(List<T> bestRadius, double radiusValue,
+      T searchPoint, String name) {
     // check to make sure radius value is greater than zero
-    if (radiusValue <= 0) {
+    if (radiusValue < 0) {
       System.out.println("ERROR: Radius must " + "be greater than zero");
       return;
+    } else if (radiusValue == 0) {
+      return;
     }
+    // set initial value for if name search or not
+    boolean isName = false;
     // if name is given, find the point to search on
     if (name != null) {
+      // set boolean true for name search
+      isName = true;
 
       searchPoint = iPointsTable.get(name);
       // if the point can not be found, an invalid
       // name was given
       if (searchPoint == null) {
 
-        System.out
-            .println("ERROR: Name is of a " + "point that does not exist");
+        System.out.println("ERROR: Name is of a "
+            + "point that does not exist");
         return;
       }
     }
     // call the helper method to run the algorithm
-    this.radiusHelper(bestRadius, radiusValue, iRoot, searchPoint, 1);
-
+    this.radiusHelper(bestRadius, radiusValue, iRoot, searchPoint, 1,
+        isName);
+    // re-sort when final list is given
     DistanceCompare distanceComparator = new DistanceCompare(searchPoint);
     bestRadius.sort(distanceComparator);
   }
@@ -425,10 +425,12 @@ public class Kdtree<T extends Kdpoint> {
    *          the point we are searching based on
    * @param depth
    *          the current depth of the tree
+   * @param isName
+   *          the isName value for this search
    */
   @SuppressWarnings("unchecked")
   public void radiusHelper(List<T> bestRadius, double radiusValue, T cur,
-      T searchPoint, int depth) {
+      T searchPoint, int depth, boolean isName) {
 
     PointCompare pointComparator = new PointCompare(depth);
     DistanceCompare distanceComparator = new DistanceCompare(searchPoint);
@@ -440,78 +442,35 @@ public class Kdtree<T extends Kdpoint> {
       if (pointComparator.compare(searchPoint, cur) <= 0) {
         // follow left path
         this.radiusHelper(bestRadius, radiusValue, (T) cur.getLeftChild(),
-            searchPoint, depth + 1);
-
-        // if node is within distance add to list
-        if (distanceComparator.squareDistance(cur, searchPoint) < Math.pow(
-            radiusValue, 2)) {
-
-          bestRadius.add(cur);
-        }
+            searchPoint, depth + 1, isName);
+        // check and add node
+        this.radiusCheckAndAdd(bestRadius, radiusValue, cur, searchPoint,
+            isName, distanceComparator);
         // calculate split coordinate distance between
         // current node and search node
-        double dist;
-
-        int dimension = depth % 3;
-
-        if (dimension == 1) {
-
-          dist = Math.pow(cur.getX() - searchPoint.getX(), 2);
-
-        } else if (dimension == 2) {
-
-          dist = Math.pow(cur.getY() - searchPoint.getY(), 2);
-
-        } else {
-
-          dist = Math.pow(cur.getZ() - searchPoint.getZ(), 2);
-        }
-        // if overall distance between
-        // search point and the
-        // worst of my current nearest
-        // neighbors is greater
-        // than the distance between
-        // the search point and
-        // current point along the current
-        // axis or if I don't
-        // currently have a full nearest
-        // neighbors list,
-        // then I search along other branches
+        double dist = this.calcSplit(depth, cur, searchPoint);
+        // if overall distance between search point and the worst of my current
+        // nearest neighbors is greater than the distance between the search
+        // point and current point along the current axis or if I don't
+        // currently have a full nearest neighbors list, then I search along
+        // other branches
         if (radiusValue > dist) {
 
-          this.radiusHelper(bestRadius, radiusValue, (T) cur.getRightChild(),
-              searchPoint, depth + 1);
+          this.radiusHelper(bestRadius, radiusValue,
+              (T) cur.getRightChild(), searchPoint, depth + 1, isName);
 
         }
       } else {
         // follow right path
-        this.radiusHelper(bestRadius, radiusValue, (T) cur.getRightChild(),
-            searchPoint, depth + 1);
+        this.radiusHelper(bestRadius, radiusValue,
+            (T) cur.getRightChild(), searchPoint, depth + 1, isName);
 
-        // if node is within distance add to list
-        if (distanceComparator.squareDistance(cur, searchPoint) < Math.pow(
-            radiusValue, 2)) {
-
-          bestRadius.add(cur);
-        }
+        // check and add node
+        this.radiusCheckAndAdd(bestRadius, radiusValue, cur, searchPoint,
+            isName, distanceComparator);
         // calculate split coordinate distance between
         // current node and search node
-        double dist;
-
-        int dimension = depth % 3;
-
-        if (dimension == 1) {
-
-          dist = Math.pow(cur.getX() - searchPoint.getX(), 2);
-
-        } else if (dimension == 2) {
-
-          dist = Math.pow(cur.getY() - searchPoint.getY(), 2);
-
-        } else {
-
-          dist = Math.pow(cur.getZ() - searchPoint.getZ(), 2);
-        }
+        double dist = this.calcSplit(depth, cur, searchPoint);
         // if the radius is greater than
         // the distance along
         // the splitting plane between the current
@@ -519,31 +478,61 @@ public class Kdtree<T extends Kdpoint> {
         // then we follow the other subtree
         if (radiusValue > dist) {
 
-          this.radiusHelper(bestRadius, radiusValue, (T) cur.getLeftChild(),
-              searchPoint, depth + 1);
+          this.radiusHelper(bestRadius, radiusValue,
+              (T) cur.getLeftChild(), searchPoint, depth + 1, isName);
         }
       }
       // only left child just go left
     } else if (cur.getLeftChild() != null && cur.getRightChild() == null) {
 
       this.radiusHelper(bestRadius, radiusValue, (T) cur.getLeftChild(),
-          searchPoint, depth + 1);
+          searchPoint, depth + 1, isName);
 
-      // if node is within distance add to list
-      if (distanceComparator.squareDistance(cur, searchPoint) < Math.pow(
-          radiusValue, 2)) {
-
-        bestRadius.add(cur);
-      }
+      // check and add node
+      this.radiusCheckAndAdd(bestRadius, radiusValue, cur, searchPoint,
+          isName, distanceComparator);
       // leaf node
     } else if (cur.getLeftChild() == null && cur.getRightChild() == null) {
+      // check and add node
+      this.radiusCheckAndAdd(bestRadius, radiusValue, cur, searchPoint,
+          isName, distanceComparator);
+    }
+  }
 
-      // if node is within distance add to list
-      if (distanceComparator.squareDistance(cur, searchPoint) < Math.pow(
-          radiusValue, 2)) {
+  /**
+   * This helper method checks if a node should be added to the list, and does
+   * so if it should be.
+   *
+   * @param bestRadius
+   *          the current list of best nodes found
+   * @param radiusValue
+   *          the radius searching on
+   * @param cur
+   *          the current node
+   * @param searchPoint
+   *          the point we are searching based on
+   * @param isName
+   *          name search or not
+   * @param distanceComparator
+   *          the distance comparator
+   */
+  public void radiusCheckAndAdd(List<T> bestRadius, double radiusValue,
+      T cur, T searchPoint, boolean isName,
+      DistanceCompare distanceComparator) {
 
-        bestRadius.add(cur);
-      }
+    // if current point is the search point and this is a name search, don't add
+    // the point
+    if (cur.getX() == searchPoint.getX()
+        && cur.getY() == searchPoint.getY()
+        && cur.getZ() == searchPoint.getZ() && isName) {
+      return;
+    }
+
+    // if node is within distance add to list
+    if (distanceComparator.squareDistance(cur, searchPoint) < Math.pow(
+        radiusValue, 2)) {
+
+      bestRadius.add(cur);
     }
   }
 }

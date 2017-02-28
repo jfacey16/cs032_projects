@@ -1,4 +1,4 @@
-package edu.brown.cs.jfacey.stars;
+package edu.brown.cs.jfacey.readers;
 
 import static org.junit.Assert.assertEquals;
 
@@ -6,7 +6,8 @@ import java.util.List;
 
 import org.junit.Test;
 
-import edu.brown.cs.jfacey.readers.CSVParser;
+import edu.brown.cs.jfacey.stars.Star;
+import edu.brown.cs.jfacey.stars.StarConverter;
 
 /**
  * This class is for testing the csvparser class.

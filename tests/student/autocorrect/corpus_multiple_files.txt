@@ -1,0 +1,7 @@
+INPUT
+corpus data/autocorrect/great_expectations.txt
+corpus data/autocorrect/sherlock.txt
+OUTPUT
+corpus data/autocorrect/great_expectations.txt added
+corpus data/autocorrect/sherlock.txt added
+END

@@ -1,0 +1,13 @@
+INPUT
+corpus data/autocorrect/sherlock.txt
+prefix on
+ac the a
+OUTPUT
+corpus data/autocorrect/sherlock.txt added
+ac the a
+the a
+the air
+the advertisement
+the adventure
+the afternoon
+END

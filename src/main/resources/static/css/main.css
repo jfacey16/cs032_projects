@@ -1,3 +1,16 @@
 input[type="number"] {
   width: 3em;
 }
+
+body {
+    background-color: blue;
+    text-align: center;
+    font-family: "Trebuchet MS", Helvetica, sans-serif
+}
+
+p {
+    margin: 1em 0;
+    width: 600px;
+    margin-left: auto;
+	margin-right: auto;
+}

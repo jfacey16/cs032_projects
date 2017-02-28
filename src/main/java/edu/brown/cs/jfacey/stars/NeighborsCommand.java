@@ -4,6 +4,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
+import org.eclipse.jetty.util.ArrayUtil;
+
 import edu.brown.cs.jfacey.datastructs.Kdtree;
 import edu.brown.cs.jfacey.readers.Command;
 
@@ -23,6 +25,7 @@ public class NeighborsCommand implements Command {
    * neighbors search.
    *
    * @param kdtree
+   *          the kdtree value
    */
   public NeighborsCommand(Kdtree<Star> kdtree) {
 
@@ -34,6 +37,16 @@ public class NeighborsCommand implements Command {
   public boolean execute(String[] inputs) {
     // neighbors position command check
     if (Objects.equals(inputs[0], "neighbors")) {
+      // if trailing whitespace, parse out
+      if (inputs[inputs.length - 1].equals("")) {
+        String[] temp = new String[inputs.length];
+        temp = ArrayUtil.removeFromArray(inputs, inputs.length - 1);
+        inputs = new String[inputs.length - 1];
+        // copy new array over
+        for (int i = 0; i < inputs.length; i++) {
+          inputs[i] = temp[i];
+        }
+      }
       // check enough inputs for neighbors search (no name)
       if (inputs.length == 5) {
         // error if kdtree has not yet been loaded

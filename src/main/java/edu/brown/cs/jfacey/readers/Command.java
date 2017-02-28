@@ -16,6 +16,8 @@ public interface Command {
    * execute, whether it was formatted correctly or ran correctly. If a
    * different command was input, it will return false.
    *
+   * @param inputs
+   *          the parsed input string
    * @return a boolean based on if this is the command or not
    *
    */

@@ -1,0 +1,5 @@
+INPUT
+corpus data/autocorrect/sherlock.txt ad
+OUTPUT
+ERROR: Incorrect input format. Format should be corpus <filepath>
+END

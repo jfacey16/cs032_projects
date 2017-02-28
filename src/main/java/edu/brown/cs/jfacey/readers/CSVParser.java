@@ -55,7 +55,8 @@ public class CSVParser {
       // checks for a valid header
       if (!Objects.equals(header[0], "StarID")
           || !Objects.equals(header[1], "ProperName")
-          || !Objects.equals(header[2], "X") || !Objects.equals(header[3], "Y")
+          || !Objects.equals(header[2], "X")
+          || !Objects.equals(header[3], "Y")
           || !Objects.equals(header[4], "Z")) {
 
         throw new RuntimeException(

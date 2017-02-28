@@ -1,0 +1,15 @@
+INPUT
+corpus data/autocorrect/sherlock.txt
+prefix on
+whitespace on
+led 2
+ac the malt
+OUTPUT
+corpus data/autocorrect/sherlock.txt added
+ac the malt
+the man
+the most
+the last
+the hall
+the maid
+END

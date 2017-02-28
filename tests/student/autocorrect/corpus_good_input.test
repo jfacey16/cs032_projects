@@ -1,0 +1,5 @@
+INPUT
+corpus data/autocorrect/great_expectations.txt
+OUTPUT
+corpus data/autocorrect/great_expectations.txt added
+END
