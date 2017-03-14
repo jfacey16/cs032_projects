@@ -1,0 +1,5 @@
+INPUT
+mdb data/bacon/bad
+OUTPUT
+ERROR: Invalid database. Must be a valid sql database containing the tables actor, movie, and actor_movie.
+END

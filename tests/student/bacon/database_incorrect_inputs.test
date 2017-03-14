@@ -1,0 +1,5 @@
+INPUT
+mdb
+OUTPUT
+ERROR: input format must be mbd <sql_db>
+END

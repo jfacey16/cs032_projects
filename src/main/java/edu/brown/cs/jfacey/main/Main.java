@@ -4,6 +4,7 @@ import java.io.File;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.StringWriter;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -24,11 +25,16 @@ import com.google.common.collect.ImmutableMap;
 import com.google.gson.Gson;
 
 import edu.brown.cs.jfacey.autocorrect.AutoCorrectCommand;
-import edu.brown.cs.jfacey.autocorrect.AutoCorrectData;
+import edu.brown.cs.jfacey.autocorrect.AutoCorrectProject;
 import edu.brown.cs.jfacey.autocorrect.CorpusCommand;
 import edu.brown.cs.jfacey.autocorrect.OptionsCommand;
+import edu.brown.cs.jfacey.bacon.ActorNode;
+import edu.brown.cs.jfacey.bacon.BaconCommand;
+import edu.brown.cs.jfacey.bacon.BaconProject;
+import edu.brown.cs.jfacey.bacon.DatabaseCommand;
+import edu.brown.cs.jfacey.bacon.MovieEdge;
 import edu.brown.cs.jfacey.datastructs.Kdtree;
-import edu.brown.cs.jfacey.datastructs.Trie;
+import edu.brown.cs.jfacey.datastructs.PathInfo;
 import edu.brown.cs.jfacey.readers.Command;
 import edu.brown.cs.jfacey.readers.REPL;
 import edu.brown.cs.jfacey.stars.NeighborsCommand;
@@ -47,9 +53,9 @@ public final class Main {
   private static final int DEFAULT_PORT = 4567;
   private static final Gson GSON = new Gson();
   private Kdtree<Star> iKd;
-  private AutoCorrectData iACData;
-  private Trie iTrie;
+  private AutoCorrectProject iACData;
   private AutoCorrectCommand iACCommand;
+  private BaconProject iBacon;
 
   /**
    * The initial method called when execution begins.
@@ -80,14 +86,14 @@ public final class Main {
     }
     // instantiate data for stars and autocorrect
     iKd = new Kdtree<Star>();
-    iTrie = new Trie();
-    iACData = new AutoCorrectData(false, false, false, 0, iTrie);
+    iACData = new AutoCorrectProject(false, false, false, 0);
+    iBacon = new BaconProject();
     // pass in data to commands and put commands in list
     iACCommand = new AutoCorrectCommand(iACData);
     List<Command> commands = ImmutableList.of(new StarsCommand(iKd),
         new NeighborsCommand(iKd), new RadiusCommand(iKd),
         new CorpusCommand(iACData), new OptionsCommand(iACData),
-        iACCommand);
+        iACCommand, new DatabaseCommand(iBacon), new BaconCommand(iBacon));
     // pass commands into new repl
     REPL repl = new REPL(commands);
     // run repl
@@ -119,6 +125,8 @@ public final class Main {
     Spark.get("/stars", new FrontHandler(), freeMarker);
     Spark.get("/autocorrect", new AutoFrontHandler(), freeMarker);
     Spark.post("/autoback", new AutoBackHandler());
+    Spark.get("/bacon", new BaconFrontHandler(), freeMarker);
+    Spark.post("/baconback", new BaconBackHandler());
   }
 
   /**
@@ -171,6 +179,63 @@ public final class Main {
       // the five options in the options list to the
       // autocorrect values
       Map<String, Object> variables = ImmutableMap.of();
+      return GSON.toJson(variables);
+    }
+  }
+
+  /**
+   * Initially sets up the bacon page.
+   *
+   * @author jfacey
+   *
+   */
+  private static class BaconFrontHandler implements TemplateViewRoute {
+    @Override
+    public ModelAndView handle(Request req, Response res) {
+      Map<String, Object> variables = ImmutableMap.of("title", "bacon");
+      return new ModelAndView(variables, "bacon.ftl");
+    }
+  }
+
+  /**
+   * This class handles the back end for bacon on two input actor names.
+   *
+   * @author jfacey
+   *
+   */
+  private class BaconBackHandler implements Route {
+    @Override
+    public String handle(Request req, Response res) {
+      System.out.println("here");
+      QueryParamsMap qm = req.queryMap();
+      String[] inputs = qm.values();
+      PathInfo<ActorNode, MovieEdge> path = iBacon.connect(inputs[0],
+          inputs[1]);
+
+      String returnString = "";
+      if (path == null) {
+        returnString = inputs[0] + " -/- " + inputs[1];
+      } else {
+        List<String> printStrings = new ArrayList<>();
+        // assemble print strings in reverse order and push to stack
+        while (path.getPrevious() != null) {
+          String printString = new String(path.getPrevious().getNode()
+              .getActor()
+              + " -> "
+              + path.getNode().getActor()
+              + " : "
+              + path.getMovie());
+          printStrings.add(printString);
+          path = path.getPrevious();
+        }
+        // print all strings in correct order
+        for (int i = 0; i < printStrings.size(); i++) {
+          String print = printStrings.get(printStrings.size() - i - 1);
+          returnString = returnString.concat(print + "\n");
+        }
+      }
+      Map<String, Object> variables = ImmutableMap
+          .of("path", returnString);
       return GSON.toJson(variables);
     }
   }

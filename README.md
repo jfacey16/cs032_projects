@@ -152,4 +152,68 @@
 	
 
 ## Bacon
-_Coming soon!_
+
+	Bugs: As of now, there are no known bugs in the program. I do not however have a working gui, and the connects can run 
+	somewhat long, up to a few minutes.
+	
+	Design: This project implements a program to find the nearest path between actors in a given database. Nodes are actors,
+	and edges are given when the first letter of the last name of the first actor is the same as the first letter of the
+	first name of the second actor, with a weight of the movie they are both in together. I add to my big program by adding
+	two new commands, database and connect. Database sets the database to use, and connect will return the full connected
+	path between to actors if it exists.  These commands take in a bacon project, which stores the info needed for the
+	project.  It contains a full autocorrect project, which is needed for the gui specification, a map of actornodes as
+	values, with the actor id as a key, a database class, and a djikstras class. The map is mainly only to know what nodes
+	are already in the graph so they are not generated again. The database class loads the database given an input sql file
+	path. It also sets up for connect, by getting the two actor nodes necessary given the names. Inside the class, it also
+	is used for generation of children for nodes. The node class will call this method given a database reference. The bacon
+	project itself is also responsible printing on a connection given a path.  The graph itself is implemented using just a 
+	collection of nodes and edges.  Each interface of GraphNode and GraphEdge have reference to itself and the other
+	implementing type. The implemented types for this project are the ActorNode and MovieEdge.  An ActorNode stores its
+	outgoing edges, actor id, actor name, movies list for the actor, if children have been generated, and the database to
+	use for generating children. The node uses the database to generate children and also has getter methods for all these
+	internal variables.  Equals and toString are overridden and another is implemented to check if there is a specific edge.
+	The edge class stores the end node, the move used for the connection, and the cost which is the reciprocal of the number 
+	of actors in the movie.  These nodes and edges are finally used in the dynamic djikstras class to find the path between
+	two nodes. This class works by using a priority queue of path infos. Path info is a wrapper class holding a node, full
+	path weight to the node, and a previous path info to the previous node. While the queue is empty, the lowest path node
+	is popped off, and its children are generated, if they haven't been yet, and all the end nodes are made into path infos.
+	If these nodes do not have path infos in the queue they are added, if there are in there, we check to see if the current
+	path is longer than the new one found, and if so, is replaced.  This continues until the node popped off is the end node
+	or the graph is empty. This guarantees the shortest path between the two nodes.  This is then returned and printed by
+	the bacon project.
+	
+	Optimizations: The use of hashing optimizes the storage of graph nodes in general, as well as using them for quick 
+	access in the djikstras. They are used to store all the nodes used in the djikstras, as well as a set of current ones
+	that are unordered for the priority queue of path infos. In this way the priority queue efficiently sorts the nodes,
+	while the set is used for accessing efficiently to know when to replace path infos in the queue.
+	
+	Tests: There are junit tests used to test the djikstras test for invalid inputs, no connection, and regular connections.  
+	There are tests given for the actor node, to test the to string, equals, and generation of children.  There are tests 
+	for the bacon project for general setting of database, connect, and autocorrecting. There are tests more the movie edge 
+	just for the new to string method.  There are tests for the database for setting it, generating children, and setting up 
+	for the connection.  These test are all automatically run when the project is built, which is explained below. There are 
+	also system tests for both commands. It tests database connections good, bad, and for corrrect inputs.  There are tests 
+	on connect for not enough inputs, actor not in db, regular connections, and names not given in quotes.  These tests can 
+	be built and run using the command cs-32test <test file path>. In this case this would be cs-32test ./tests/student/
+	bacon/* from the project directory.
+	
+	Build/Run: This project can be built by running mvn package. Then by call ./run, the project is run.
+	Running with --gui would run with a gui, and running with --port <PORT> will run
+	at the specified port. Both commands are optional.
+	
+	DQs: 
+	1. My design makes it easy to add new algorithms or new ways of finding paths. For instance, the sqldatabse defines 
+	using a sqldatabase for a specific type of connections, last name to first name on first initial.  Another class can
+	easily implement the graphdatabase type to make connections in a different way and to use a different database type. 
+	Also, another algorithm could easily be added by writing a new class for it, and using that to generate paths instead of 
+	the dynamic djikstras.
+	
+	2. Again, as stated above, to change for a new input type would be the same change, which would be writing a new
+	implementing class for graphdatabase, that we redo the set up connect, generate children, and set database methods.
+	
+	3. Dealing with a chain of movies in chronological order would just result in having an extra check in my djikstras
+	method that would check if the previous path infos associated  movie for connecting had an earlier year for connecting.
+	This could be extended to any algorithm used.
+	
+	
+	Checkstyle: As of now, there are no known checkstyle issues.
