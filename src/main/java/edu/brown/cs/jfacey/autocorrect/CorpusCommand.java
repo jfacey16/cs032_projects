@@ -15,7 +15,7 @@ import edu.brown.cs.jfacey.readers.Command;
  */
 public class CorpusCommand implements Command {
 
-  private AutoCorrectData iAcData;
+  private AutoCorrectProject iAcData;
 
   /**
    * This constructor just sets the value for the current autocorrect data.
@@ -23,7 +23,7 @@ public class CorpusCommand implements Command {
    * @param acData
    *          The autocorrect data stored
    */
-  public CorpusCommand(AutoCorrectData acData) {
+  public CorpusCommand(AutoCorrectProject acData) {
     iAcData = acData;
   }
 

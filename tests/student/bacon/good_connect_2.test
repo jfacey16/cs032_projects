@@ -1,0 +1,8 @@
+INPUT
+mdb data/bacon/smallBacon.sqlite3
+connect "Taylor Swift" "Matthew McConaughey"
+OUTPUT
+db set to data/bacon/smallBacon.sqlite3
+Taylor Swift -> Shirley McLaine : Valentine's Day
+Shirley McLaine -> Matthew McConaughey : Bernie
+END

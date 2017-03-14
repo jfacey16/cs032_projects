@@ -1,0 +1,8 @@
+INPUT
+mdb data/bacon/smallBacon.sqlite3
+connect "actor1" "actor2"
+OUTPUT
+db set to data/bacon/smallBacon.sqlite3
+ERROR: actor1 is not a valid actor
+ERROR: actor2 is not a valid actor
+END

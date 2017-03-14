@@ -15,7 +15,7 @@ import edu.brown.cs.jfacey.readers.Command;
  */
 public class OptionsCommand implements Command {
 
-  private AutoCorrectData iAcData;
+  private AutoCorrectProject iAcData;
 
   /**
    * This constructor just sets the value for the current autocorrect data.
@@ -23,7 +23,7 @@ public class OptionsCommand implements Command {
    * @param acData
    *          The autocorrect data stored
    */
-  public OptionsCommand(AutoCorrectData acData) {
+  public OptionsCommand(AutoCorrectProject acData) {
     iAcData = acData;
   }
 

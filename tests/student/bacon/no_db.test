@@ -1,0 +1,5 @@
+INPUT
+connect "George Lopez" "Robert Downey Jr."
+OUTPUT
+ERROR: no database set
+END

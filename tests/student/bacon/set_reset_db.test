@@ -1,0 +1,13 @@
+INPUT
+mdb data/bacon/smallBacon.sqlite3
+mdb a
+connect "a" "b"
+mdb data/bacon/smallBacon.sqlite3
+connect "a" "b"
+OUTPUT
+db set to data/bacon/smallBacon.sqlite3
+ERROR: must be valid sql database containing the tables actor, film, and actor_film
+ERROR: no database set
+db set to data/bacon/smallBacon.sqlite3
+ERROR: a is not a valid actor
+END
