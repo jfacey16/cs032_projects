@@ -339,7 +339,7 @@ public class AutoCorrectProject {
     // print out ordered suggestions
     for (int i = 1; i < words.size(); i++) {
       System.out.println(words.get(0) + words.get(i));
-      if (i == 4) {
+      if (i == 5) {
         break;
       }
     }

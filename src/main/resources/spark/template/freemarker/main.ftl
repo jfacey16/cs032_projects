@@ -11,6 +11,7 @@
      ${content}
      <script src="js/jquery-2.1.1.js"></script>
      
+     <script src="js/autocorrect.js"></script>
      <script src="js/bacon.js"></script>
      
   </body>

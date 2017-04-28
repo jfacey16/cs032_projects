@@ -14,9 +14,9 @@ prefix and whitespace, or a non negative int for led.
 The five top suggestions will be displayed below the
 input box.
 </p>
-<form method="GET" action="/autocorrect">
+<form>
   <label for="autocorrect box" id="phrase"> Input sentence to autocorrect here: </label>
-  <input type="test" name="autocorrect box" id="autocorrect box" list="suggestions>
+  <input type="test" name="autocorrectbox" id="autocorrectbox" list="suggestions>
   <datalist id="suggestions>
   	<option id="suggestion one"></option>
   	<option id="suggestion two"></option>

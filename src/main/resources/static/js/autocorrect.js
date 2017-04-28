@@ -2,10 +2,10 @@ function autoCorrect() {
 	
 	const postParameters = {
 			
-			input: $("#autocorrect box").val(),
+			input: $("#autocorrectbox").val(),
 	};
 	
-	$.post("/validate", postParameters, responseJSON => {
+	$.post("/autoback", postParameters, responseJSON => {
 		// parse input
         const responseObject = JSON.parse(responseJSON);
 
@@ -19,7 +19,8 @@ function autoCorrect() {
     });
 }
 
-
-$("#autocorrect box").keypress(autoCorrect() {
+$(document).ready(() => {
+	$("#autocorrectbox").keypress(autoCorrect() {
 	
+	});
 });

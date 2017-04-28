@@ -14,7 +14,7 @@ A path is if there is a continuous stream of connections
 between two actors. If there is a path, it will be
 displayed below.
 </p>
-<form>
+<form method="GET" action="/bacon">
   <label for="actor one box" id="phrase1"> Input actor one here: </label>
   <input type="test" name="actor one box" id="actor one box" list="suggestions1">
   <datalist id="suggestions1>
