@@ -81,7 +81,7 @@ public final class Main {
     OptionParser parser = new OptionParser();
     parser.accepts("gui");
     parser.accepts("port").withRequiredArg().ofType(Integer.class)
-        .defaultsTo(DEFAULT_PORT);
+    .defaultsTo(DEFAULT_PORT);
     OptionSet options = parser.parse(args);
 
     if (options.has("gui")) {
@@ -255,7 +255,7 @@ public final class Main {
             } catch (NumberFormatException e) {
 
               stars
-              .add("Number of neighbors" + " must be a valid integer");
+                  .add("Number of neighbors" + " must be a valid integer");
               Map<String, Object> variables = ImmutableMap.of("type",
                   type, "stars", stars, "title", "Neighbors Name Results");
               return new ModelAndView(variables, "neighbor.ftl");
@@ -454,39 +454,34 @@ public final class Main {
   private class AutoBackHandler implements Route {
     @Override
     public String handle(Request req, Response res) {
-      System.out.println("here");
+
       QueryParamsMap qm = req.queryMap();
-      System.out.println("2");
+
       String autocorrectInput = qm.value("input");
       System.out.println(autocorrectInput);
-      System.out.println("3");
       String[] inputs = autocorrectInput.split(
           "[ ]+(?=([^\"]*\"[^\"]*\")*[^\"]*$)", -1);
-      System.out.println("4");
       String[] newInputs = new String[inputs.length + 1];
-      for (int i = 0; i < inputs.length; i++) {
+      for (int i = 0; i < inputs.length + 1; i++) {
         if (i == 0) {
           newInputs[0] = "ac";
         } else {
           newInputs[i] = inputs[i - 1];
         }
       }
-      System.out.println("5");
-      System.out.println(newInputs[0]);
-      System.out.println(newInputs[1]);
+
       List<String> words = iACData.autoCorrectWord(newInputs);
-      System.out.println("6");
-      int blank = 5 - words.size();
+
+      int blank = 6 - words.size();
       if (blank > 0) {
-        for (int i = 5; i > 5 - blank; i = i - 1) {
-          words.add("");
+        for (int i = 6; i > 6 - blank; i = i - 1) {
+          words.add(" ");
         }
       }
       Map<String, Object> variables = ImmutableMap
-          .of("wordOne", words.get(0), "wordTwo", words.get(1),
-              "wordThree", words.get(2), "wordFour", words.get(3),
-              "wordFive", words.get(4));
-      System.out.println("there");
+          .of("wordOne", words.get(1), "wordTwo", words.get(2),
+              "wordThree", words.get(3), "wordFour", words.get(4),
+              "wordFive", words.get(5));
       return GSON.toJson(variables);
     }
   }

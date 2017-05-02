@@ -16,13 +16,13 @@ input box.
 </p>
 <form>
   <label for="autocorrect box" id="phrase"> Input sentence to autocorrect here: </label>
-  <input type="test" name="autocorrectbox" id="autocorrectbox" list="suggestions>
-  <datalist id="suggestions>
-  	<option id="suggestion one"></option>
-  	<option id="suggestion two"></option>
-  	<option id="suggestion three"></option>
-  	<option id="suggestion four"></option>
-  	<option id="suggestion five"></option>
+  <input type="test" name="autocorrectbox" id="autocorrectbox" list="suggestions">
+  <datalist id="suggestions">
+  	<option id="1" value="a">1</option>
+  	<option id="2" value="b">2</option>
+  	<option id="3" value="c">3</option>
+  	<option id="4" value="d">4</option>
+  	<option id="5" value="e">5</option>
   </datalist>
 </form>
 
