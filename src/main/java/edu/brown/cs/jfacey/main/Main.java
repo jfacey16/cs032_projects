@@ -456,10 +456,26 @@ public final class Main {
     public String handle(Request req, Response res) {
       System.out.println("here");
       QueryParamsMap qm = req.queryMap();
+      System.out.println("2");
       String autocorrectInput = qm.value("input");
+      System.out.println(autocorrectInput);
+      System.out.println("3");
       String[] inputs = autocorrectInput.split(
           "[ ]+(?=([^\"]*\"[^\"]*\")*[^\"]*$)", -1);
-      List<String> words = iACData.autoCorrectWord(inputs);
+      System.out.println("4");
+      String[] newInputs = new String[inputs.length + 1];
+      for (int i = 0; i < inputs.length; i++) {
+        if (i == 0) {
+          newInputs[0] = "ac";
+        } else {
+          newInputs[i] = inputs[i - 1];
+        }
+      }
+      System.out.println("5");
+      System.out.println(newInputs[0]);
+      System.out.println(newInputs[1]);
+      List<String> words = iACData.autoCorrectWord(newInputs);
+      System.out.println("6");
       int blank = 5 - words.size();
       if (blank > 0) {
         for (int i = 5; i > 5 - blank; i = i - 1) {
@@ -470,6 +486,7 @@ public final class Main {
           .of("wordOne", words.get(0), "wordTwo", words.get(1),
               "wordThree", words.get(2), "wordFour", words.get(3),
               "wordFive", words.get(4));
+      System.out.println("there");
       return GSON.toJson(variables);
     }
   }

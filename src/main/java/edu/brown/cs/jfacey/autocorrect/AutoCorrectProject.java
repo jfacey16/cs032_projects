@@ -176,10 +176,10 @@ public class AutoCorrectProject {
   public List<String> autoCorrectWord(String[] inputs) {
     List<String> words = new ArrayList<>();
     // if last input is whitespace, just return
+    System.out.println("11");
     if (inputs[inputs.length - 1].equals("")) {
       return words;
     }
-
     // instantiate sentence for printing outputs and suggestions list
     String previousSentence = "";
     // instantiate for previous word and ac word
